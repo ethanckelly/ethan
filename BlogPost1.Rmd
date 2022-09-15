@@ -1,0 +1,76 @@
+---
+title: Blog Post #1
+author: Ethan Kelly
+date: '2022-09-14'
+slug: test-post-1
+categories: []
+tags: []
+summary: Welcome to my Election Analytics Blog! This is the first installement of a multi-part blog series over the course of the Fall 2022 Semester in Gov 1347 taught by Professor Ryan Enos. This blog is focused on political gerrymandering, looking at comparisons of statewide popular vote share & statewide seat allocation for both the Democrats and Republicans. The results show apparant results of political gerrymandering across the country, though none of it is unexpected, it is still disappointing. 
+---
+
+```{r, echo = FALSE}
+install.packages("rmapshaper")
+install.packages("sf")
+install.packages("tigris")
+```
+
+
+```{r, echo = FALSE}
+#Setting the working directory
+library(tidyverse)
+library(usmap)
+library(statebins)
+library(rmapshaper)
+h <- read_csv("house nationwide vote and seat share by party 1948-2020.csv")
+seat <- read_csv("house party vote share by district 1948-2020.csv")
+```
+===== Worked with: Claire, Amiel, Jen, Julia & asked Kiara for help =======
+
+In this blog post, we are going to explore the impact of political gerrymandering on the 2020 House of Representative elections. This blog post will contain 2 main graphics: Figure 1. The 2020 Seat Share Margin Across Each State & Figure 2. The 2020 Party Vote Margin Across Each State. The data we utilized has come from 2 main sources: 1. Lab data from the Gov 1347 class & 2. CQ Voting and Elections Collection. 
+
+```{r, echo = FALSE}
+# Loading in data... this is where I learned Mac's use a different distinction (they don't use _'s)
+house_party_vote_share_by_district_1948_2020 <- read_csv("house party vote share by district 1948-2020.csv")
+# Figuring out party vote margins by state
+seat2020 <- read.csv("house party vote share by district 1948-2020.csv") %>%
+filter(raceYear == 2020) %>% select(raceYear, State, district_num, district_id, RepVotes, DemVotes) %>%
+# Summarizing party seat share by state
+group_by(State) %>%
+# Mutate vote margin by state
+mutate(R_votemargin_st = (sum(RepVotes))/sum(RepVotes + DemVotes), D_votemargin_st = (sum(DemVotes))/sum(RepVotes + DemVotes), 
+votemargin_st = R_votemargin_st - D_votemargin_st) %>% rename(state = State)
+# Plotting final result
+plot_usmap(data = seat2020, regions = "state", labels = TRUE, values = "votemargin_st") + 
+  scale_fill_gradient2(low = "deepskyblue4", mid="white", high = "firebrick3", name = "2020 Voteshare Margin", limits = c(-0.75,0.75)) + theme_void() +
+   labs(title = "2020 Party Vote Margin")
+```
+To begin, we will look at the 2020 vote share margin across the country. The party vote share across the majority of states seems quite tame, however that is likely due to the vote share margin being such an expansive (-0.75, 0.75). The reason for the reduction in the vote share margin frame is because it is rare for a party to get anywhere close to 100% more of the vote than their opponents – as a result, I decided to utilize a range that is more possible (75% vote margin). However, you may notice South Dakota to be gray, this is because the Democrats did not run a candidate in 2020. It is fascinating to think about the fact South Dakota had a Democrat in Congress as recently as 2011. Just food for thought
+
+
+Our vote share map reveals that some states are pretty close by House vote share: NC, VA, GA, FL, AZ, NV, PA, MI, WI, IA, MN, and NH (among others). These, not by coincidence, happened to be swing states in the presidential election that coincided with these House elections. The takeaway from this map is that more-states-than-not are close and competitive on the vote-share side. So… from this, you’d expect it to be similar in terms of House Composition/Seat Share? Right?
+
+```{r, echo = FALSE}
+# Here is where I loaded in the data... After trying to figure out the CSV, I decided to manuever the CSV to make my own
+seats2020 <- read_csv("seatsdata2020.csv")
+# Figuring out seat margins by state
+seatshare2020 <- seats2020 %>% select(State, Republican, Democrat) %>%
+# Summarizing party seat share by state
+group_by(State) %>%
+# Mutate vote margin by state
+mutate(R_seatmargin_st = (sum(Republican))/sum(Republican + Democrat), D_seatmargin_st = (sum(Democrat))/sum(Republican + Democrat), 
+seatmargin_st = R_seatmargin_st - D_seatmargin_st) %>% rename(state = State)
+# Plotting final result
+plot_usmap(data = seatshare2020, regions = "state", labels = TRUE, values = "seatmargin_st") + 
+  scale_fill_gradient2(low = "deepskyblue4", mid="white", high = "firebrick3", name = "2020 Seatshare Margin", limits = c(-1,1)) + theme_void() +
+   labs(title = "2020 Seat Share Margin")
+```
+Wrong. When we find the seat share margin map, we find that the majority of states have a extreme partisan compositions, whether that be for Republicans or Democrats. Innocently, we could think that this could be due to simple partisanship, but we saw how few states were truly extremely partisan. For example Maryland–which hasn’t voted for a Republican since 1984 (U.S. Election Atlas)–is heavily blue on our shaded map on both the vote share & seat share map, but this is not the case for many other states. Plainly put: Maryland is an outlier.
+ 
+Some major differences between vote marign and seat margin can be found in many, many states, but most notably Texas, Ohio, and the worst of all, North Carolina. Texas and Ohio have significantly redder compositions on the Seat Share margin map than on the Party Vote Margin. If you look at the actual party vote margin in Ohio, it is 52R-47D (Ohio Secretary of State Website), compared to the seat composition of 12R-4D (OH SOS). This is a prime example of extreme gerrymandering. Sadly, Ohio is not alone. Texas is another example of partisan gerrymandering, where Republicans won just 9 points more than the Democrats statewide (Texas Secretary of State Website), yet lead them 23-13 (TX SOS) in the House composition. The worst example on the map would have to be North Carolina, where Democrats won the popular vote, yet only won 5/13 House seats in the state. This extreme level of gerrymandering prevented the Democrats from winning a majority in North Carolina. 
+
+To clarify some important parts of the seat share margin map: some states have one singular district, meaning that the result will always be one dark color on the seatshare margin map. For instance, Montana has 1 Representative, and though Republicans won by less than 15%, it still went to them, thus marking the map as solid red. To not confuse single-district states with gerrymandered ones, here are the single-district states in the United States (pre-2022 Redistricting Era): AK, DE, MT, ND, SD, VT, and WY. 
+
+In conclusion, I could write on and on about the abundance of evidence of gerrymandering through our maps, but it would be ultimately be redundant. To wrap up, there are two main takeaways that this blog post has revealed: 1. Republicans gerrymander better than Democrats – or at least, have more gerrymandered states than Democrats, likely due to their heavy levels of victories back in 2010 (see: 2010 Election Results) – and it shows. & 2. Vote share and seat share does align in some states, showcasing that our system is not entirely screwed up. 
+
+Altogether, our political system in the House of Representatives needs work to ensure fair representation. However, based on how engrained gerrymandering is in American political culture – I am far from hopeful. 
+

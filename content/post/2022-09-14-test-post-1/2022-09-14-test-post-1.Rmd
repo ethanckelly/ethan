@@ -8,12 +8,6 @@ tags: []
 summary: Welcome to my Election Analytics Blog! This is the first installement of a multi-part blog series over the course of the Fall 2022 Semester in Gov 1347 taught by Professor Ryan Enos. This blog is focused on political gerrymandering, looking at comparisons of statewide popular vote share & statewide seat allocation for both the Democrats and Republicans. The results show apparant results of political gerrymandering across the country, though none of it is unexpected, it is still disappointing. 
 ---
 
-```{r, echo = FALSE}
-install.packages("rmapshaper")
-install.packages("sf")
-install.packages("tigris")
-```
-
 
 ```{r, echo = FALSE}
 #Setting the working directory
